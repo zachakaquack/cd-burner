@@ -5,12 +5,12 @@ from os import walk
 from pathlib import Path
 from subprocess import run as sp_run
 
+from settings_manager import Settings, get_global_settings
 from song_info import Song
 import invalid_cd_fixer
 import downloading
 
-TEMPORARY_DOWNLOAD_LOCATION: Path = Path.cwd() / "downloads"
-TEMPORARY_DOWNLOAD_LOCATION.mkdir(exist_ok=True)
+SETTINGS: Settings = get_global_settings()
 MUSIC_DIRECTORY: Path = Path("/mnt/storage/Music/all")
 
 
@@ -23,7 +23,9 @@ def encode_to_flac(songs: list[Song]) -> list[Song]:
     """
     for song in songs:
         # same thing as {song.path} but ensured to flac
-        destination: Path = TEMPORARY_DOWNLOAD_LOCATION / str(song.path.stem + ".wav")
+        destination: Path = SETTINGS.temporary_downloading_directory / str(
+            song.path.stem + ".wav"
+        )
         args = (
             "ffmpeg",
             "-y",
@@ -66,7 +68,7 @@ def get_songs_from_directory() -> list[Song]:
                 # some of my playlists are relative to MUSIC_DIRECTORY, some are absolute
                 if not song_path.is_absolute():
                     # append to MUSIC_DIRECTORY (MUSIC_DIRECTORY is an absolute path)
-                    song_path = MUSIC_DIRECTORY / song_path
+                    song_path = SETTINGS.music_directory / song_path
                 songs.append(Song(song_path))
 
         # songs are already sorted by the order of the .m3u playlist,
@@ -167,7 +169,7 @@ def construct_cue_file_2(songs: list[Song]) -> Path:
         line_buffer.append(f'{INDENT_2}PERFORMER "{', '.join(song.tags.artist)}"')
         line_buffer.append(f"{INDENT_2}INDEX 01 00:00:00")
 
-    CUE_PATH = TEMPORARY_DOWNLOAD_LOCATION / "album.cue"
+    CUE_PATH = SETTINGS.temporary_downloading_directory / "album.cue"
     with open(CUE_PATH, "w", encoding="utf-8") as f:
         _ = f.write("\n".join(line_buffer))
     return CUE_PATH
@@ -229,7 +231,7 @@ def install_songs(songs: list[Song]) -> None:
     album_destination: str = f"{", ".join(songs[0].tags.album)}"
     for song in songs:
         dest: Path = (
-            MUSIC_DIRECTORY
+            SETTINGS.music_directory
             / f"{artist_destination}"
             / f"{album_destination}"
             / f"{song.tags.title[0]}{song.path.suffix}"
