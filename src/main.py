@@ -1,14 +1,13 @@
 import shutil
 import subprocess
 import time
-import operator
 from os import walk
 from pathlib import Path
 from subprocess import run as sp_run
 
-from song_info import Song  # pyright: ignore[reportImplicitRelativeImport]
-import invalid_cd_fixer  # pyright: ignore[reportImplicitRelativeImport]
-import downloading  # pyright: ignore[reportImplicitRelativeImport]
+from song_info import Song
+import invalid_cd_fixer
+import downloading
 
 TEMPORARY_DOWNLOAD_LOCATION: Path = Path.cwd() / "downloads"
 TEMPORARY_DOWNLOAD_LOCATION.mkdir(exist_ok=True)

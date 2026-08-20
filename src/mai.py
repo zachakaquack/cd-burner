@@ -1,7 +1,6 @@
 import glob
 import shutil
 from pathlib import Path
-import re
 from mutagen.flac import FLAC
 import yt_dlp
 from subprocess import run as sp_run
@@ -23,7 +22,7 @@ def notify(title: str, body: str = "") -> None:
 
 def download_video(url: str) -> None:
 
-    ydl_opts = {  # pyright: ignore[reportUnknownVariableType]
+    ydl_opts = {
         "format": "bestaudio",
         "extractaudio": True,
         "outtmpl": {

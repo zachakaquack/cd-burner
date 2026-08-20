@@ -1,6 +1,5 @@
 import operator
 from os import system, walk  # pyright: ignore[reportDeprecated]
-from os import listdir
 from pathlib import Path
 
 from song_info import Song
