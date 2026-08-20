@@ -28,19 +28,24 @@ def start_downloads() -> tuple[list[Song], Path | None]:
             return handle_apple_link(link)
 
         mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
-
-        # WARN:
-        # pray it works and doesnt return 403 (THANK YOU YOUTUBE)
-        # should work otherwise? :Clueless:
         if mai_match:
-            paths: list[Path] = mai.from_another_python_file(link)
-            songs: list[Song] = []
-            for path in paths:
-                songs.append(Song(path))
-            return songs, None
+            return handle_mai_link(link), None
 
         print("Link not recognized! Try again.")
         continue
+
+
+def handle_mai_link(link: str) -> list[Song]:
+    """
+    downloads a [mai](https://www.youtube.com/@mai_dq) playlist
+    using yt-dlp.
+    returns a list of song objects
+    """
+    paths: list[Path] = mai.from_another_python_file(link)
+    songs: list[Song] = []
+    for path in paths:
+        songs.append(Song(path))
+    return songs
 
 
 def handle_apple_link(link: str) -> tuple[list[Song], Path]:
