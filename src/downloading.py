@@ -48,10 +48,19 @@ def handle_apple_link(link: str) -> list[Song]:
     """)
 
     # all songs are now downloaded to $HOME/Desktop/OrpheusDL/downloads
-    files: list[str] = listdir(f"{DOWNLOADS_DIR}")
+    paths: list[Path] = list(DOWNLOADS_DIR.glob("*"))
     song_dir: Path = Path()
     while True:
-        print("', '".join(files))
+        for i, file in enumerate(paths):
+            if file.is_file():
+                continue
+
+            string = f"'{file.stem}'"
+            if i + 1 < len(paths):
+                print(string, end=", ")
+            else:
+                print(string)
+
         song_dir_ = input("Enter name of directory that you just downloaded:\n> ")
         if Path(song_dir).exists():
             song_dir = Path(song_dir_)  # sorry
