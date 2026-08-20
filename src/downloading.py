@@ -1,0 +1,72 @@
+import operator
+from os import system, walk  # pyright: ignore[reportDeprecated]
+from os import listdir
+from pathlib import Path
+
+from song_info import Song
+import mai
+import re
+
+
+def start_downloads() -> list[Song]:
+    # example apple: https://music.apple.com/us/album/hornet-disaster/1786672343
+    # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
+
+    while True:
+        link = input("Enter Apple Album/Playlist ID or mai Playlist link:\n> ")
+        # link = "https://music.apple.com/us/album/hornet-disaster/1786672343"
+
+        mai_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
+        if mai_match:
+            return handle_apple_link(link)
+
+        mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
+
+        # WARN:
+        # pray it works and doesnt return 403 (THANK YOU YOUTUBE)
+        # should work otherwise? :Clueless:
+        if mai_match:
+            paths: list[Path] = mai.from_another_python_file(link)
+            songs: list[Song] = []
+            for path in paths:
+                songs.append(Song(path))
+            return songs
+
+        print("Link not recognized! Try again.")
+        continue
+
+
+def handle_apple_link(link: str) -> list[Song]:
+    # FIX: horrid
+    DIR: Path = Path("/home/zach/Desktop/OrpheusDL")
+    DOWNLOADS_DIR = DIR / "downloads"
+    _ = system(f"""
+    cd {DIR} && \
+    {DIR}/.venv/bin/python \
+    {DIR}/orpheus.py \
+    {link}
+    """)
+
+    # all songs are now downloaded to $HOME/Desktop/OrpheusDL/downloads
+    files: list[str] = listdir(f"{DOWNLOADS_DIR}")
+    song_dir: Path = Path()
+    while True:
+        print("', '".join(files))
+        song_dir_ = input("Enter name of directory that you just downloaded:\n> ")
+        if Path(song_dir).exists():
+            song_dir = Path(song_dir_)  # sorry
+            break
+        print("Not a valid directory. Try again!")
+
+    songs: list[Song] = []
+    for dir, _, files in walk(f"{DOWNLOADS_DIR / song_dir}"):
+        for file in files:
+
+            if file.endswith(".lrc") or file == ".orpheus_album_id":
+                continue
+
+            full_path = Path(f"{dir}/{file}")
+            songs.append(Song(full_path))
+
+    sorted_songs = sorted(songs, key=operator.attrgetter("tags.track_num"))
+    return sorted_songs
