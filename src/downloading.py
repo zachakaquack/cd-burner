@@ -61,9 +61,14 @@ def handle_apple_link(link: str) -> list[Song]:
             else:
                 print(string)
 
-        song_dir_ = input("Enter name of directory that you just downloaded:\n> ")
-        if Path(song_dir).exists():
-            song_dir = Path(song_dir_)  # sorry
+        input_answer = input("Enter name of directory that you just downloaded:\n> ")
+        input_dir: Path = DOWNLOADS_DIR / Path(input_answer)
+        if (
+            input_answer not in ("", ".")  # ensure they typed __something__ valid
+            and input_dir.exists()  # ensure is real
+            and input_dir.is_dir()  # not a file (like error.txt that orpheus makes)
+        ):
+            song_dir = Path(input_dir)
             break
         print("Not a valid directory. Try again!")
 
