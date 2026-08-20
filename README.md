@@ -1,5 +1,7 @@
 # cd-burner
 
+still under construction
+
 basically all this does is:
 
 1. find the music you want to burn
