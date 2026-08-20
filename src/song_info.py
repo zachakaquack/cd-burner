@@ -5,6 +5,16 @@ from os.path import getsize
 
 
 class Tags:
+    """
+    class that holds information about tags for Song objects.
+    title: list[str] - list of titles
+    artist: list[str] - list of artists
+    album: list[str] - list of album names
+    track_num: int - track number in album
+    file_size_bytes: int - file size in bytes
+    length_seconds: float - length in seconds
+    """
+
     def __init__(
         self,
         title: list[str],
@@ -89,6 +99,9 @@ class Tags:
 
     @classmethod
     def get_tags(cls, song: Song) -> Tags:
+        """
+        construct a Tags object from the metadata of a Song object
+        """
         path: Path = song.path
         file: mutagen.FileType | None = mutagen.File(f"{path}", easy=True)
         if not file:
@@ -134,6 +147,11 @@ class Tags:
 
 
 class Song:
+    """
+    song object class. holds a path to its representative file and a Tags
+    object to represent its metadata tags
+    """
+
     def __init__(self, init_path: Path):
 
         # absolute
