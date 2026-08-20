@@ -13,8 +13,8 @@ def start_downloads() -> list[Song]:
     # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
 
     while True:
-        # link = input("Enter Apple Album/Playlist ID or mai Playlist link:\n> ")
-        link = "https://music.apple.com/us/album/somewhere-in-the-distance-somewhere-toward-the-mountains/1553601543"
+        link = input("Enter Apple Album/Playlist ID or mai Playlist link:\n> ")
+        # link = "https://music.apple.com/us/album/hornet-disaster/1786672343"
 
         mai_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
         if mai_match:
@@ -40,35 +40,21 @@ def handle_apple_link(link: str) -> list[Song]:
     # FIX: horrid
     DIR: Path = Path("/home/zach/Desktop/OrpheusDL")
     DOWNLOADS_DIR = DIR / "downloads"
-    # _ = system(f"""
-    # cd {DIR} && \
-    # {DIR}/.venv/bin/python \
-    # {DIR}/orpheus.py \
-    # {link}
-    # """)
-
-    #  https://music.apple.com/us/album/somewhere-in-the-distance-somewhere-toward-the-mountains/1553601543
+    _ = system(f"""
+    cd {DIR} && \
+    {DIR}/.venv/bin/python \
+    {DIR}/orpheus.py \
+    {link}
+    """)
 
     # all songs are now downloaded to $HOME/Desktop/OrpheusDL/downloads
-    paths: list[Path] = list(DOWNLOADS_DIR.glob("*"))
+    files: list[str] = listdir(f"{DOWNLOADS_DIR}")
     song_dir: Path = Path()
     while True:
-        for i, file in enumerate(paths):
-            if file.is_file():
-                continue
-
-            string = f"'{file.stem}'"
-            if i + 1 < len(paths):
-                print(string, end=", ")
-            else:
-                print(string)
-
-        input_answer: str = input(
-            "Enter name of directory that you just downloaded:\n> "
-        )
-        input_dir: Path = Path(input_answer)
-        if input_dir.exists() and f"{input_dir}" != ".":
-            song_dir = Path(input_dir)
+        print("', '".join(files))
+        song_dir_ = input("Enter name of directory that you just downloaded:\n> ")
+        if Path(song_dir).exists():
+            song_dir = Path(song_dir_)  # sorry
             break
         print("Not a valid directory. Try again!")
 
