@@ -213,7 +213,7 @@ def get_song_source() -> list[Song]:
 
     songs: list[Song] = []
     if not answer or answer != "n":
-        songs = downloading.start_downloads()
+        songs, _ = downloading.start_downloads()
 
     else:
         songs = get_songs_from_directory()
@@ -222,6 +222,7 @@ def get_song_source() -> list[Song]:
     return songs
 
 
+# TODO: make this better? make it apart of Song class maybe instead
 def install_songs(songs: list[Song]) -> None:
     """
     "installs" the songs by taking their metadata tags and copying them over
