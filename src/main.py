@@ -5,6 +5,7 @@ from os import walk
 from pathlib import Path
 from subprocess import run as sp_run
 
+from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
 from settings_manager import Settings, get_global_settings
 from song_info import Song
 import invalid_cd_fixer
@@ -77,7 +78,10 @@ def get_songs_from_directory() -> list[Song]:
 
     for _, _, files in walk(f"{path}"):
         for file in files:
-            if file.endswith((".lrc", ".jpg")) or file == ".orpheus_album_id":
+            if (
+                file.endswith((LYRIC_FILE_EXTENSION, ".jpg"))
+                or file == ORPHEUS_ALBUM_ID
+            ):
                 continue
 
             song_path = Path(path / file)
