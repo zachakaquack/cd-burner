@@ -10,6 +10,9 @@ class InvalidCDReason(Enum):
 
 
 def invalid_cd_reason_to_string(reason: InvalidCDReason) -> str:
+    """
+    turn the InvalidCDReason into a reason (duh)
+    """
     match reason:
         case InvalidCDReason.Over80Minutes:
             return "CD Length is over 80 minutes!"
@@ -18,6 +21,10 @@ def invalid_cd_reason_to_string(reason: InvalidCDReason) -> str:
 
 
 def fix(songs: list[Song], reason: InvalidCDReason) -> list[Song]:
+    """
+    basically the starting point for anything that needs to be fixed
+    runs the handler for if the songs are too long time wise, or too big size wise.
+    """
     print(
         f"Error found while constructing CD! Reason: {invalid_cd_reason_to_string(reason)}"
     )
@@ -25,10 +32,15 @@ def fix(songs: list[Song], reason: InvalidCDReason) -> list[Song]:
         case InvalidCDReason.Over80Minutes:
             return handle_too_long(songs)
         case InvalidCDReason.Over700Megabytes:
-            raise NotImplemented
+            return handle_too_big(songs)
 
 
 def handle_too_long(songs: list[Song]) -> list[Song]:
+    """
+    interactively prompts the user to remove songs from the list of songs
+    to reach the <80 min mark.
+    returns a new list of songs that is under 80 minutes long
+    """
     edited_songs: list[Song] = songs
     while True:
         total_seconds: float = 0
@@ -73,6 +85,11 @@ def handle_too_long(songs: list[Song]) -> list[Song]:
 
 
 def handle_too_big(songs: list[Song]) -> list[Song]:
+    """
+    interactively prompts the user to remove songs from the list of songs
+    to reach the <700 mb mark.
+    returns a new list of songs that is under 700 mb in size
+    """
     edited_songs: list[Song] = songs
     while True:
         total_megabytes: float = 0
