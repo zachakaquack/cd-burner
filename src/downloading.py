@@ -23,8 +23,8 @@ def start_downloads() -> tuple[list[Song], Path | None]:
     while True:
         link = input("Enter Apple Album/Playlist ID or mai Playlist link:\n> ")
 
-        mai_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
-        if mai_match:
+        apple_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
+        if apple_match:
             return handle_apple_link(link)
 
         mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
