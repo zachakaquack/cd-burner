@@ -8,7 +8,7 @@ import mai
 import re
 
 
-def start_downloads() -> list[Song]:
+def start_downloads() -> tuple[list[Song], Path | None]:
     # example apple: https://music.apple.com/us/album/hornet-disaster/1786672343
     # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
 
@@ -30,13 +30,13 @@ def start_downloads() -> list[Song]:
             songs: list[Song] = []
             for path in paths:
                 songs.append(Song(path))
-            return songs
+            return songs, None
 
         print("Link not recognized! Try again.")
         continue
 
 
-def handle_apple_link(link: str) -> list[Song]:
+def handle_apple_link(link: str) -> tuple[list[Song], Path]:
     # FIX: horrid
     DIR: Path = Path("/home/zach/Desktop/OrpheusDL")
     DOWNLOADS_DIR = DIR / "downloads"
@@ -82,5 +82,7 @@ def handle_apple_link(link: str) -> list[Song]:
             full_path = Path(f"{dir}/{file}")
             songs.append(Song(full_path))
 
+    # delete the selected directory in orpheus after installing to not clutter & waste space
+    dir_to_delete: Path = Path(f"{DOWNLOADS_DIR / song_dir}")
     sorted_songs = sorted(songs, key=operator.attrgetter("tags.track_num"))
-    return sorted_songs
+    return sorted_songs, dir_to_delete

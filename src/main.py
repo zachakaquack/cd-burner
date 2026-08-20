@@ -184,12 +184,11 @@ def get_song_source() -> list[Song]:
     songs: list[Song] = []
     if not answer or answer != "n":
         songs = downloading.start_downloads()
-        songs = encode_to_flac(songs)
 
     else:
         songs = get_songs_from_directory()
-        songs = encode_to_flac(songs)
 
+    songs = encode_to_flac(songs)
     return songs
 
 
@@ -213,12 +212,14 @@ def main() -> None:
         songs: list[Song] = get_song_source()
         cue_path: Path = construct_cue_file_2(songs)
         burn_cd(cue_path)
+        install_songs(songs)
         return
     else:
         # just download
-        songs = downloading.start_downloads()
-
-    install_songs(songs)
+        songs, dir_to_delete = downloading.start_downloads()
+        install_songs(songs)
+        if dir_to_delete:
+            shutil.rmtree(dir_to_delete)
 
 
 if __name__ == "__main__":
