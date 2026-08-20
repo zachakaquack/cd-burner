@@ -7,12 +7,9 @@ from subprocess import run as sp_run
 from os import remove as os_remove, walk as os_walk
 from sys import argv as sys_argv
 
-TEST_URL = "https://www.youtube.com/watch?v=EkFFRCS-XKo&list=RDEkFFRCS-XKo&start_radio=1&t=771s"
-TEMP_DOWNLOAD_PATH = Path.cwd() / "downloads"
-FINAL_DOWNLOAD_PATH = Path("/mnt/storage/Music/all")
+from settings_manager import Settings, get_global_settings
 
-TEMP_DOWNLOAD_PATH.mkdir(exist_ok=True)
-FINAL_DOWNLOAD_PATH.mkdir(exist_ok=True)
+SETTINGS: Settings = get_global_settings()
 
 
 def notify(title: str, body: str = "") -> None:
@@ -33,8 +30,8 @@ def download_video(url: str) -> None:
         "format": "bestaudio",
         "extractaudio": True,
         "outtmpl": {
-            "default": f"{TEMP_DOWNLOAD_PATH}/DELETEMEVIDEO.%(ext)s",  # unfortunately need the ext
-            "chapter": f"{TEMP_DOWNLOAD_PATH}/%(section_number)02d. %(section_title)s.%(ext)s",
+            "default": f"{SETTINGS.temporary_downloading_directory}/DELETEMEVIDEO.%(ext)s",  # unfortunately need the ext
+            "chapter": f"{SETTINGS.temporary_downloading_directory}/%(section_number)02d. %(section_title)s.%(ext)s",
         },
         "quiet": False,
         "noplaylist": True,
@@ -46,7 +43,7 @@ def download_video(url: str) -> None:
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # pyright: ignore[reportArgumentType]
         _ = ydl.download([f"{url}"])
 
-    files = glob.glob(f"{TEMP_DOWNLOAD_PATH}/DELETEMEVIDEO*")
+    files = glob.glob(f"{SETTINGS.temporary_downloading_directory}/DELETEMEVIDEO*")
     if not files:
         notify(
             "TEMPORARY DOWNLOAD NOT FOUND!",
@@ -95,7 +92,7 @@ def reencode_the_fuckers() -> None:
     re-encodes the music tracks from some weird format into flacs.
     removes old obsolete weirdly formatted file
     """
-    for _, _, files in os_walk(f"{TEMP_DOWNLOAD_PATH}"):
+    for _, _, files in os_walk(f"{SETTINGS.temporary_downloading_directory}"):
         if not files:
             continue
         files = sorted(files)
@@ -108,7 +105,7 @@ def reencode_the_fuckers() -> None:
             args = (
                 "ffmpeg",
                 "-i",
-                f"{TEMP_DOWNLOAD_PATH}/{file}",
+                f"{SETTINGS.temporary_downloading_directory}/{file}",
                 "-sample_fmt",
                 "s16",
                 "-ar",
@@ -117,10 +114,10 @@ def reencode_the_fuckers() -> None:
                 "0:",
                 "-c:a",
                 "flac",
-                f"{TEMP_DOWNLOAD_PATH}/{file.stem}.flac",
+                f"{SETTINGS.temporary_downloading_directory}/{file.stem}.flac",
             )
             _ = sp_run(args)
-            os_remove(f"{TEMP_DOWNLOAD_PATH}/{file}")
+            os_remove(f"{SETTINGS.temporary_downloading_directory}/{file}")
 
 
 def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
@@ -165,7 +162,7 @@ def main(url: str = "") -> Path:
     playlist_files: list[Path] = []
 
     # big programming doesnt wan't you to know you can do things without making them into functions
-    for _, _, files in os_walk(f"{TEMP_DOWNLOAD_PATH}"):
+    for _, _, files in os_walk(f"{SETTINGS.temporary_downloading_directory}"):
         if not files:
             continue
         files = sorted(files)
@@ -173,15 +170,17 @@ def main(url: str = "") -> Path:
         for file in files:
             track, artist, title = find_info(filename=file)
 
-            flac = FLAC(f"{TEMP_DOWNLOAD_PATH}/{file}")
+            flac = FLAC(f"{SETTINGS.temporary_downloading_directory}/{file}")
             flac["ALBUM"] = playlist_title
             flac["TITLE"] = title
             flac["ARTIST"] = artist
             flac["track"] = flac["track_num"] = str(track)
             flac.save()  # pyright: ignore[reportUnknownMemberType]
 
-            src = f"{TEMP_DOWNLOAD_PATH}/{file}"
-            dest: Path = Path(f"{FINAL_DOWNLOAD_PATH}/{artist}/Unknown/{title}.flac")
+            src = f"{SETTINGS.temporary_downloading_directory}/{file}"
+            dest: Path = Path(
+                f"{SETTINGS.music_directory}/{artist}/Unknown/{title}.flac"
+            )
             dest.parent.mkdir(parents=True, exist_ok=True)
             _ = shutil.move(src, dest)
 
