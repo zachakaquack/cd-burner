@@ -9,12 +9,19 @@ import re
 
 
 def start_downloads() -> tuple[list[Song], Path | None]:
+    """
+    starts the downloads and handles whether user is downloading from apple music
+    or downloading a [mai](https://www.youtube.com/@mai_dq) playlist.
+    returns a tuple of: (
+    a list of Song objects
+    an optional Path of the directory the music was downloaded in, to remove when finished.
+    )
+    """
     # example apple: https://music.apple.com/us/album/hornet-disaster/1786672343
     # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
 
     while True:
         link = input("Enter Apple Album/Playlist ID or mai Playlist link:\n> ")
-        # link = "https://music.apple.com/us/album/hornet-disaster/1786672343"
 
         mai_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
         if mai_match:
@@ -37,6 +44,15 @@ def start_downloads() -> tuple[list[Song], Path | None]:
 
 
 def handle_apple_link(link: str) -> tuple[list[Song], Path]:
+    """
+    downloads a link from apple music.
+    example: https://music.apple.com/us/album/hornet-disaster/1786672343
+    returns a tuple of: (
+    a list of Song objects
+    the Path of the directory the music was downloaded in, to remove.
+    (REMOVE PATH AFTER INSTALLING SONGS TO NOT LOSE DATA)
+    )
+    """
     # FIX: horrid
     DIR: Path = Path("/home/zach/Desktop/OrpheusDL")
     DOWNLOADS_DIR = DIR / "downloads"
