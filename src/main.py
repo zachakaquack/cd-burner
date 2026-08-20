@@ -14,12 +14,13 @@ TEMPORARY_DOWNLOAD_LOCATION.mkdir(exist_ok=True)
 MUSIC_DIRECTORY: Path = Path("/mnt/storage/Music/all")
 
 
-def notify(title: str, body: str = "") -> None:
-    args = ("notify-send", f"{title}", f"{body}")
-    _ = sp_run(args)
-
-
 def encode_to_flac(songs: list[Song]) -> list[Song]:
+    """
+    encodes all the songs to the temporary download location,
+    as .wav files
+    changes the `path` member variable of each song, and just returns
+    the same list of song objects
+    """
     for song in songs:
         # same thing as {song.path} but ensured to flac
         destination: Path = TEMPORARY_DOWNLOAD_LOCATION / str(song.path.stem + ".wav")
@@ -44,6 +45,12 @@ def encode_to_flac(songs: list[Song]) -> list[Song]:
 
 
 def get_songs_from_directory() -> list[Song]:
+    """
+    gets a song from a directory; either a .m3u file, or a directory itself.
+    if user inputs a .m3u file, parse the lines and contruct a list of song objects.
+    if user inputs a directory, find all music files within the specified
+    directory and construct the list of song objects.
+    """
     answer: str = input("Enter path of album or path of .m3u playlist:\n> ")
     path: Path = Path(answer)
     if not path.exists():
@@ -79,6 +86,14 @@ def get_songs_from_directory() -> list[Song]:
 
 
 def cue_file_error_checks(songs: list[Song]) -> list[Song]:
+    """
+    does all the error checks relating to CUE files:
+    1. ensure length of songs list is not 0
+    2. ensure total length (time-wise) of songs is <80 minutes
+    3. ensure total size of songs is <70 mb
+    if an error is found, goes to `invalid_cd_fixer.fix()` and fixes the cue files
+    with user interaction
+    """
     # length check
     if len(songs) < 1:
         raise ValueError(
@@ -111,6 +126,23 @@ def cue_file_error_checks(songs: list[Song]) -> list[Song]:
 
 
 def construct_cue_file_2(songs: list[Song]) -> Path:
+    """
+    the secondcoming of the CUE construction function.
+    returns a path to the CUE file that is used to burn the cd
+    matches this format:
+
+    TITLE "{album title}"
+    PERFORMER "{album artist}"
+    {
+    FILE "{file_path.wav}" WAVE
+    REM FILE-DECODED-SIZE {%M:%S}
+      TRACK 01 AUDIO
+        TITLE "{track title}"
+        PERFORMER "{track artist}"
+        INDEX 01 00:00:00
+    }...
+    where the ... indicates multiple tracks
+    """
 
     # if no error occurs, it just returns same songs
     songs = cue_file_error_checks(songs)
@@ -141,19 +173,12 @@ def construct_cue_file_2(songs: list[Song]) -> Path:
     return CUE_PATH
 
 
-# TITLE "fishmonger [Explicit]"
-# PERFORMER "Underscores"
-# {
-# FILE "01 - 70% [Explicit].flac" FLAC
-# REM FILE-DECODED-SIZE 02:40:09
-#   TRACK 01 AUDIO
-#     TITLE "70% [Explicit]"
-#     PERFORMER "Underscores"
-#     INDEX 01 00:00:00
-# }...
-
-
 def burn_cd(cue_path: Path) -> None:
+    """
+    actually burning the cd.
+    takes the path to the CUE file. (the CUE file has the location of all the tracks)
+    checks if cd is inserted @ /dev/sr0 w/ command `blockdev --getsize64 /dev/sr0`
+    """
     while True:
         output = subprocess.getoutput(("blockdev --getsize64 /dev/sr0"))
         if "medium" in output:
@@ -177,7 +202,11 @@ def burn_cd(cue_path: Path) -> None:
 
 
 def get_song_source() -> list[Song]:
-
+    """
+    asks the user whether or not they want to download, or get from a local directory / .m3u
+    encodes the songs to .wav
+    returns the list of song objects
+    """
     answer = input("Are you downloading anything first? [Y]/n:\n> ")
 
     songs: list[Song] = []
@@ -192,6 +221,10 @@ def get_song_source() -> list[Song]:
 
 
 def install_songs(songs: list[Song]) -> None:
+    """
+    "installs" the songs by taking their metadata tags and copying them over
+    to my music directory
+    """
     artist_destination: str = f"{", ".join(songs[0].tags.artist)}"
     album_destination: str = f"{", ".join(songs[0].tags.album)}"
     for song in songs:
