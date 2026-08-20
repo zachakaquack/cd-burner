@@ -16,11 +16,18 @@ FINAL_DOWNLOAD_PATH.mkdir(exist_ok=True)
 
 
 def notify(title: str, body: str = "") -> None:
+    """
+    send a notification with notify-send
+    """
     args = ("notify-send", f"{title}", f"{body}")
     _ = sp_run(args)
 
 
 def download_video(url: str) -> None:
+    """
+    downloads the video from youtube w/ yt_dlp. classic
+    splits by chapter
+    """
 
     ydl_opts = {
         "format": "bestaudio",
@@ -52,6 +59,17 @@ def download_video(url: str) -> None:
 
 # gets track_num, artist, title from the filename
 def find_info(filename: str) -> tuple[int, str, str]:
+    """
+    gets the information from the filename.
+    return a tuple of: (
+        track_num: int,
+        title: str,
+        artist: str,
+    )
+    inputted filename should look like: "%(section_number)02d. %(section_title)s.%(ext)s"
+    e.g. "05. My Super Awesome Song Name - Your Epic Artist Name.extension"
+    (the title & artist are both in the section title)
+    """
     track_num: int = 0
     artist: str = ""
     title: str = ""
@@ -72,6 +90,11 @@ def find_info(filename: str) -> tuple[int, str, str]:
 
 
 def reencode_the_fuckers() -> None:
+    """
+    basically achieves in-place re-encoding to .flac
+    re-encodes the music tracks from some weird format into flacs.
+    removes old obsolete weirdly formatted file
+    """
     for _, _, files in os_walk(f"{TEMP_DOWNLOAD_PATH}"):
         if not files:
             continue
@@ -101,7 +124,9 @@ def reencode_the_fuckers() -> None:
 
 
 def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
-
+    """
+    see `get_the_metadata_just_for_the_title_of_the_playlist_lol()`.
+    """
     ydl_opts = {
         "noplaylist": True,
         "noprogress": True,
@@ -115,6 +140,9 @@ def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
 
 
 def main(url: str = "") -> Path:
+    """
+    downloads the video, re-encodes them into .flac, install into music directory, creates .m3u playlist
+    """
 
     if not url:
         args = sys_argv
@@ -167,8 +195,12 @@ def main(url: str = "") -> Path:
     return mpd_playlist
 
 
-# return a list of Paths for a list of Songs
 def from_another_python_file(url: str) -> list[Path]:
+    """
+    a hacky way of running the mai downloader from another python file
+    takes a url to a youtube link (better be a mai song!) and downloads it
+    returns a list of Path objects for the caller to construct Song objects for.
+    """
     mpd_playlist: Path = main(url=url)
     songs: list[Path] = []
     with open(f"{mpd_playlist}", "r", encoding="utf-8") as playlist:
