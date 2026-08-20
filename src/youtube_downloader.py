@@ -27,6 +27,19 @@ def start_download(url: str) -> list[Song]:
     return songs
 
 
+def parse_songs() -> list[Song]:
+    songs: list[Song] = []
+    for dir, _, files in os_walk(f"{SETTINGS.temporary_downloading_directory}"):
+        if not files:
+            continue
+
+        for file in files:
+            full_path = Path(f"{dir}") / f"{file}"
+            songs.append(Song(init_path=full_path))
+
+    return songs
+
+
 def download_video(url: str) -> None:
     """
     downloads the video from youtube w/ yt_dlp. classic
