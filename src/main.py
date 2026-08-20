@@ -218,7 +218,6 @@ def main() -> None:
         # just download
         songs = downloading.start_downloads()
 
-    shutil.rmtree(TEMPORARY_DOWNLOAD_LOCATION)
     install_songs(songs)
 
 
