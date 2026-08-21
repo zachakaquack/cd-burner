@@ -1,4 +1,5 @@
 import glob
+from operator import attrgetter
 from pathlib import Path
 from mutagen.flac import FLAC
 import yt_dlp
@@ -30,18 +31,20 @@ def start_download(url: str) -> list[Song]:
     songs = parse_songs()
 
     # each Song has a `.path` member var, which gets updated after this function
-    encode_songs(songs)
-    construct_m3u(songs, video_title)
+    songs.sort(key=attrgetter("tags.track_num"))
+    construct_m3u(songs, video_title, uploader)
 
     return songs
 
 
-def construct_m3u(songs: list[Song], video_title: str) -> None:
+def construct_m3u(songs: list[Song], video_title: str, uploader: str) -> None:
     line_buffer: str = ""
     for song in songs:
         line_buffer += f"{song.path}\n"
 
-    with open(f"{SETTINGS.mpd_playlists_directory}/{video_title}.m3u", "w") as f:
+    with open(
+        f"{SETTINGS.mpd_playlists_directory}/{uploader} - {video_title}.m3u", "w"
+    ) as f:
         _ = f.write(f"{line_buffer}")
 
 
