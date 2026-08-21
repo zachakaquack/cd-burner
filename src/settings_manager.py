@@ -30,7 +30,7 @@ class Settings:
     """
     directory that contains the git clone for orpheusDL. expects a setup virtual env as `.venv/`
     and the required modules downloaded.
-    default: $HOME/Desktop/repos/OrpheusDL
+    default: $HOME/Desktop/OrpheusDL
     """
 
     def __post_init__(self):
@@ -45,6 +45,11 @@ class Settings:
                 p: Path = Path(getattr(self, f"{member}"))
                 if p and p.exists() and p.is_dir():
                     p.mkdir(exist_ok=True)
+
+                # sometimes, for some reason, the path is loaded as a string
+                # so when you do self.path / "other_directory", it shits the bed
+                # because of str / str division
+                setattr(self, f"{member}", p)
 
     def dict(self) -> dict[str, str]:
         """
@@ -72,7 +77,7 @@ class Settings:
             temporary_downloading_directory=Path.cwd() / "downloads",
             music_directory=Path("/mnt/storage/Music/all"),
             mpd_playlists_directory=Path.home() / ".config/mpd/playlists",
-            orpheusDL_source_directory=Path.home() / "/Desktop/repos/OrpheusDL",
+            orpheusDL_source_directory=Path.home() / "Desktop/OrpheusDL",
         )
 
 
