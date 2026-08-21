@@ -104,6 +104,9 @@ def handle_apple_link(link: str) -> tuple[list[Song], Path]:
             full_path = Path(f"{dir}/{file}")
             songs.append(Song(full_path))
 
+    for song in songs:
+        song.install_into_music_dir(remove_old=True)
+
     # delete the selected directory in orpheus after installing to not clutter & waste space
     dir_to_delete: Path = Path(f"{ORPHEUS_DOWNLOADS_DIR / song_dir}")
     sorted_songs = sorted(songs, key=operator.attrgetter("tags.track_num"))

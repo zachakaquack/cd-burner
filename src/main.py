@@ -226,37 +226,16 @@ def get_song_source() -> list[Song]:
     return songs
 
 
-# TODO: make this better? make it apart of Song class maybe instead
-def install_songs(songs: list[Song]) -> None:
-    """
-    "installs" the songs by taking their metadata tags and copying them over
-    to my music directory
-    """
-    artist_destination: str = f"{", ".join(songs[0].tags.artist)}"
-    album_destination: str = f"{", ".join(songs[0].tags.album)}"
-    for song in songs:
-        dest: Path = (
-            SETTINGS.music_directory
-            / f"{artist_destination}"
-            / f"{album_destination}"
-            / f"{song.tags.title[0]}{song.path.suffix}"
-        )
-        dest.parent.mkdir(exist_ok=True, parents=True)
-        _ = shutil.copy(song.path, dest)
-
-
 def main() -> None:
     answer = input("Are you burning a CD? [Y]/n:\n> ")
     if not answer or answer != "n":
         songs: list[Song] = get_song_source()
         cue_path: Path = construct_cue_file_2(songs)
         burn_cd(cue_path)
-        install_songs(songs)
         return
     else:
         # just download
         songs, dir_to_delete = downloading.start_downloads()
-        install_songs(songs)
         if dir_to_delete:
             shutil.rmtree(dir_to_delete)
 
