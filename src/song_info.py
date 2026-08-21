@@ -171,12 +171,17 @@ class Song:
         optionally can delete the old file (like from downloads dir)
         """
 
-        old_path = self.path
-        self.path = SETTINGS.music_directory / self.relative_to_music_directory()
-        _ = shutil.copy(f"{old_path}", f"{self.path}")
+        relative = self.relative_to_music_directory()
+        (SETTINGS.music_directory / relative).parent.mkdir(parents=True, exist_ok=True)
 
         if remove_old:
-            os_remove(f"{old_path}")
+            self.path = Path(
+                shutil.move(f"{self.path}", f"{SETTINGS.music_directory / relative}")
+            )
+        else:
+            self.path = Path(
+                shutil.copy(f"{self.path}", f"{SETTINGS.music_directory / relative}")
+            )
 
     def relative_to_music_directory(self) -> Path:
         """
@@ -190,7 +195,7 @@ class Song:
         album = ", ".join(self.tags.album)
         title = ", ".join(self.tags.title)
 
-        return Path(f"{artist}/{album}{title}{self.path.suffix}")
+        return Path(f"{artist}/{album}/{title}{self.path.suffix}")
 
     @property
     def path(self) -> Path:  # pyright: ignore[reportRedeclaration]
