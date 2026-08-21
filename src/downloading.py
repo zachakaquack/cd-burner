@@ -4,11 +4,11 @@ from pathlib import Path
 
 from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
 from song_info import Song
-import mai
 import re
 
 
 from settings_manager import Settings, get_global_settings
+import youtube_downloader
 
 SETTINGS: Settings = get_global_settings()
 
@@ -34,23 +34,19 @@ def start_downloads() -> tuple[list[Song], Path | None]:
 
         mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
         if mai_match:
-            return handle_mai_link(link), None
+            return handle_youtube_link(link), None
 
         print("Link not recognized! Try again.")
         continue
 
 
-def handle_mai_link(link: str) -> list[Song]:
+def handle_youtube_link(link: str) -> list[Song]:
     """
-    downloads a [mai](https://www.youtube.com/@mai_dq) playlist
-    using yt-dlp.
+    downloads a video from youtube, and splits by chapter. uses the chpater info to get metadata.
+    using yt-dlp
     returns a list of song objects
     """
-    paths: list[Path] = mai.from_another_python_file(link)
-    songs: list[Song] = []
-    for path in paths:
-        songs.append(Song(path))
-    return songs
+    return youtube_downloader.start_download(link)
 
 
 def handle_apple_link(link: str) -> tuple[list[Song], Path]:
