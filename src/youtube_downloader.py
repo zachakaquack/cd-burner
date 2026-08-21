@@ -1,11 +1,9 @@
 import glob
-import shutil
 from pathlib import Path
 from mutagen.flac import FLAC
 import yt_dlp
 from subprocess import run as sp_run
 from os import remove as os_remove, walk as os_walk
-from sys import argv as sys_argv
 
 from settings_manager import Settings, get_global_settings
 from song_info import Song
@@ -26,8 +24,18 @@ def start_download(url: str) -> list[Song]:
 
     # each Song has a `.path` member var, which gets updated after this function
     encode_songs(songs)
+    construct_m3u(songs, video_title)
 
     return songs
+
+
+def construct_m3u(songs: list[Song], video_title: str) -> None:
+    line_buffer: str = ""
+    for song in songs:
+        line_buffer += f"{song.path}\n"
+
+    with open(f"{SETTINGS.mpd_playlists_directory}/{video_title}.m3u", "w") as f:
+        _ = f.write(f"{line_buffer}")
 
 
 def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
