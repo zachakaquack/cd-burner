@@ -15,7 +15,10 @@ def start_download(url: str) -> list[Song]:
     songs: list[Song] = []
 
     download_video(url)
-    video_title = get_the_metadata_just_for_the_title_of_the_playlist_lol(url)
+    video_title, uploader = (
+        get_the_metadata_just_for_the_title_and_uploader_of_the_playlist_lol(url)
+    )
+
     # loops through SETTINGS.temporary_downloading_directory.
     encode_songs()
 
@@ -40,7 +43,9 @@ def construct_m3u(songs: list[Song], video_title: str) -> None:
         _ = f.write(f"{line_buffer}")
 
 
-def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
+def get_the_metadata_just_for_the_title_and_uploader_of_the_playlist_lol(
+    url: str,
+) -> tuple[str, str]:
     """
     see `get_the_metadata_just_for_the_title_of_the_playlist_lol()`.
     """
@@ -53,7 +58,10 @@ def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # pyright: ignore[reportArgumentType]
         info = ydl.extract_info(url)
-        return info.get("title", "Unknown")  # pyright: ignore[reportReturnType]
+        return (
+            info.get("title", "Unknown"),
+            info.get("uploader", "Unknown"),
+        )  # pyright: ignore[reportReturnType]
 
 
 def insert_tags(songs: list[Song], video_title: str) -> None:
