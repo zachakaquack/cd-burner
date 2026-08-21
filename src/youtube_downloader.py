@@ -47,7 +47,7 @@ def get_the_metadata_just_for_the_title_and_uploader_of_the_playlist_lol(
     url: str,
 ) -> tuple[str, str]:
     """
-    see `get_the_metadata_just_for_the_title_of_the_playlist_lol()`.
+    see `get_the_metadata_just_for_the_title_and_uploader_of_the_playlist_lol()`.
     """
     ydl_opts = {
         "noplaylist": True,
