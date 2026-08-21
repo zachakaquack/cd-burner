@@ -20,11 +20,37 @@ def start_download(url: str) -> list[Song]:
     songs = parse_songs()
 
     # each Song has a `.path` member var, which gets updated after this function
-    encode_and_move_songs(songs)
+    encode_songs(songs)
     insert_tags(songs)
     construct_m3u(songs)
 
     return songs
+
+
+def encode_songs(songs: list[Song]) -> None:
+    for song in songs:
+        ffmpeg_destination: Path = Path(f"{song.path.parent}/{song.path.stem}.flac")
+        ffmpeg_encoding_args = (
+            "ffmpeg",
+            "-i",
+            f"{song.path}",
+            "-sample_fmt",
+            "s16",
+            "-ar",
+            "48000",
+            "-map_metadata",
+            "0:",
+            "-c:a",
+            "flac",
+            # /dir/song.mp3 -> /dir/song.flac
+            f"{ffmpeg_destination}",
+        )
+        _ = sp_run(ffmpeg_encoding_args)
+        song.path = ffmpeg_destination
+
+        # delete old
+        old_path: Path = song.path
+        os_remove(f"{old_path}")
 
 
 def parse_songs() -> list[Song]:
