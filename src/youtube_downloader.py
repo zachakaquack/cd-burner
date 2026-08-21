@@ -17,14 +17,29 @@ def start_download(url: str) -> list[Song]:
     songs: list[Song] = []
 
     download_video(url)
+    video_title = get_the_metadata_just_for_the_title_of_the_playlist_lol(url)
     songs = parse_songs()
 
     # each Song has a `.path` member var, which gets updated after this function
     encode_songs(songs)
-    insert_tags(songs)
-    construct_m3u(songs)
 
     return songs
+
+
+def get_the_metadata_just_for_the_title_of_the_playlist_lol(url: str) -> str:
+    """
+    see `get_the_metadata_just_for_the_title_of_the_playlist_lol()`.
+    """
+    ydl_opts = {
+        "noplaylist": True,
+        "noprogress": True,
+        "quiet": True,
+        "simulate": True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # pyright: ignore[reportArgumentType]
+        info = ydl.extract_info(url)
+        return info.get("title", "Unknown")  # pyright: ignore[reportReturnType]
 
 
 def encode_songs(songs: list[Song]) -> None:
