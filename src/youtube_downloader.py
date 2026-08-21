@@ -28,7 +28,7 @@ def start_download(url: str) -> list[Song]:
     # the tags BEFORE creating the song objects (which use the metadata tags).
     # loops through SETTINGS.temporary_downloading_directory.
     insert_tags(video_title)
-    songs = parse_songs()
+    songs = parse_and_install_songs()
 
     # each Song has a `.path` member var, which gets updated after this function
     songs.sort(key=attrgetter("tags.track_num"))
@@ -151,7 +151,7 @@ def encode_songs() -> None:
             os_remove(f"{file}")
 
 
-def parse_songs() -> list[Song]:
+def parse_and_install_songs() -> list[Song]:
     songs: list[Song] = []
     for dir, _, files in os_walk(f"{SETTINGS.temporary_downloading_directory}"):
         if not files:
@@ -159,7 +159,9 @@ def parse_songs() -> list[Song]:
 
         for file in files:
             full_path = Path(f"{dir}") / f"{file}"
-            songs.append(Song(init_path=full_path))
+            song = Song(init_path=full_path)
+            song.install_into_music_dir(remove_old=True)
+            songs.append(song)
 
     return songs
 
