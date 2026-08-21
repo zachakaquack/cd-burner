@@ -5,6 +5,7 @@ import yt_dlp
 from subprocess import run as sp_run
 from os import remove as os_remove, walk as os_walk
 
+import consts
 from settings_manager import Settings, get_global_settings
 from song_info import Song
 
@@ -24,7 +25,8 @@ def start_download(url: str) -> list[Song]:
 
     # since these are from youtube, we have to use the chapter name to construct
     # the tags BEFORE creating the song objects (which use the metadata tags).
-    insert_tags(songs, video_title)
+    # loops through SETTINGS.temporary_downloading_directory.
+    insert_tags(video_title)
     songs = parse_songs()
 
     # each Song has a `.path` member var, which gets updated after this function
@@ -64,7 +66,7 @@ def get_the_metadata_just_for_the_title_and_uploader_of_the_playlist_lol(
         )  # pyright: ignore[reportReturnType]
 
 
-def insert_tags(songs: list[Song], video_title: str) -> None:
+def insert_tags(video_title: str) -> None:
     def find_info(filename: str) -> tuple[int, str, str]:
         """
         gets the information from the filename.
@@ -95,16 +97,26 @@ def insert_tags(songs: list[Song], video_title: str) -> None:
 
         return (track_num, artist, title)
 
-    for song in songs:
-        track_num, title, artist = find_info(song.path.stem)
+    for dir, _, files in os_walk(f"{SETTINGS.temporary_downloading_directory}"):
+        if not files:
+            continue
+        files = sorted(files)
+        for file in files:
 
-        flac = FLAC(f"{song.path}")
-        flac["ALBUM"] = video_title
-        flac["TITLE"] = title
-        flac["ARTIST"] = artist
-        flac["track"] = flac["track_num"] = flac["trkn"] = str(track_num)
-        flac.save()  # pyright: ignore[reportUnknownMemberType]
+            if not file.endswith(consts.FLAC_FILE_EXTENSION):
+                if file.endswith(consts.WEBM_FILE_EXTENSION):
+                    os_remove(f"{dir}/{file}")
+                continue
 
+            file = Path(f"{dir}/{file}")
+            track_num, title, artist = find_info(f"{file.stem}{file.suffix}")
+
+            flac = FLAC(f"{file}")
+            flac["ALBUM"] = video_title
+            flac["TITLE"] = title
+            flac["ARTIST"] = artist
+            flac["track"] = flac["track_num"] = flac["trkn"] = str(track_num)
+            flac.save()  # pyright: ignore[reportUnknownMemberType]
 
 
 def encode_songs() -> None:
