@@ -59,17 +59,16 @@ def handle_apple_link(link: str) -> tuple[list[Song], Path]:
     (REMOVE PATH AFTER INSTALLING SONGS TO NOT LOSE DATA)
     )
     """
-    ORPHEUS_DOWNLOADS_DIR = SETTINGS.orpheusDL_source_directory / "downloads"
 
     # FIX: horrid
     _ = system(f"""
-    cd {SETTINGS.orpheusDL_source_directory} && \
-    {SETTINGS.orpheusDL_source_directory}/.venv/bin/python \
-    {SETTINGS.orpheusDL_source_directory}/orpheus.py \
-    {link}
+    cd {SETTINGS.orpheusDL_source_directory} && \\
+       {SETTINGS.orpheusDL_source_directory}/.venv/bin/python \\
+       {SETTINGS.orpheusDL_source_directory}/orpheus.py \\
+       {link}
     """)
 
-    # all songs are now downloaded to $HOME/Desktop/OrpheusDL/downloads
+    ORPHEUS_DOWNLOADS_DIR = SETTINGS.orpheusDL_source_directory / "downloads"
     paths: list[Path] = list(ORPHEUS_DOWNLOADS_DIR.glob("*"))
     song_dir: Path = Path()
     while True:
