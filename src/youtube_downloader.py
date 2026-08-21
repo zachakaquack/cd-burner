@@ -16,6 +16,8 @@ def start_download(url: str) -> list[Song]:
 
     download_video(url)
     video_title = get_the_metadata_just_for_the_title_of_the_playlist_lol(url)
+    # loops through SETTINGS.temporary_downloading_directory.
+    encode_songs()
 
     # since these are from youtube, we have to use the chapter name to construct
     # the tags BEFORE creating the song objects (which use the metadata tags).
@@ -96,30 +98,34 @@ def insert_tags(songs: list[Song], video_title: str) -> None:
         flac.save()  # pyright: ignore[reportUnknownMemberType]
 
 
-def encode_songs(songs: list[Song]) -> None:
-    for song in songs:
-        ffmpeg_destination: Path = Path(f"{song.path.parent}/{song.path.stem}.flac")
-        ffmpeg_encoding_args = (
-            "ffmpeg",
-            "-i",
-            f"{song.path}",
-            "-sample_fmt",
-            "s16",
-            "-ar",
-            "48000",
-            "-map_metadata",
-            "0:",
-            "-c:a",
-            "flac",
-            # /dir/song.mp3 -> /dir/song.flac
-            f"{ffmpeg_destination}",
-        )
-        _ = sp_run(ffmpeg_encoding_args)
-        song.path = ffmpeg_destination
 
-        # delete old
-        old_path: Path = song.path
-        os_remove(f"{old_path}")
+def encode_songs() -> None:
+    for dir, _, files in os_walk(f"{SETTINGS.temporary_downloading_directory}"):
+        if not files:
+            continue
+        files = sorted(files)
+        for file in files:
+            file = Path(f"{dir}/{file}")
+            ffmpeg_destination: Path = Path(f"{file.parent}/{file.stem}.flac")
+            ffmpeg_encoding_args = (
+                "ffmpeg",
+                "-i",
+                f"{file}",
+                "-sample_fmt",
+                "s16",
+                "-ar",
+                "48000",
+                "-map_metadata",
+                "0:",
+                "-c:a",
+                "flac",
+                # /dir/song.mp3 -> /dir/song.flac
+                f"{ffmpeg_destination}",
+            )
+            _ = sp_run(ffmpeg_encoding_args)
+
+            # delete old .webm (or other extension) file we encoded from
+            os_remove(f"{file}")
 
 
 def parse_songs() -> list[Song]:
