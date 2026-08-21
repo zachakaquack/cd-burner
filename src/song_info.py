@@ -1,7 +1,13 @@
+from os import remove as os_remove
 from pathlib import Path
+import shutil
 from typing import override
 import mutagen
 from os.path import getsize
+
+from settings_manager import Settings, get_global_settings
+
+SETTINGS: Settings = get_global_settings()
 
 
 class Tags:
@@ -157,6 +163,34 @@ class Song:
         # absolute
         self.path: Path = init_path
         self.tags: Tags = Tags.get_tags(self)
+
+    def install_into_music_dir(self, remove_old: bool = False) -> None:
+        """
+        installs the song.
+        changes `self.path` to the new path relative to music directory
+        optionally can delete the old file (like from downloads dir)
+        """
+
+        old_path = self.path
+        self.path = SETTINGS.music_directory / self.relative_to_music_directory()
+        _ = shutil.copy(f"{old_path}", f"{self.path}")
+
+        if remove_old:
+            os_remove(f"{old_path}")
+
+    def relative_to_music_directory(self) -> Path:
+        """
+        construct the path relative to MUSIC_DIRECTORY in settings
+        this does not return the full path. just relative to music dir.
+
+        INABAKUMORI - Lagtrain on WEATHER STATION w/ .flac
+        goes to `INABAKUMORI/WEATHER STATION/Lagtrain.flac`
+        """
+        artist = ", ".join(self.tags.artist)
+        album = ", ".join(self.tags.album)
+        title = ", ".join(self.tags.title)
+
+        return Path(f"{artist}/{album}{title}{self.path.suffix}")
 
     @property
     def path(self) -> Path:  # pyright: ignore[reportRedeclaration]
