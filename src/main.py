@@ -5,6 +5,7 @@ from os import walk
 from pathlib import Path
 from subprocess import run as sp_run
 
+from cd_burning import CDBurner
 from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
 from settings_manager import Settings, get_global_settings
 from song_info import Song
@@ -179,34 +180,6 @@ def construct_cue_file_2(songs: list[Song]) -> Path:
     return CUE_PATH
 
 
-def burn_cd(cue_path: Path) -> None:
-    """
-    actually burning the cd.
-    takes the path to the CUE file. (the CUE file has the location of all the tracks)
-    checks if cd is inserted @ /dev/sr0 w/ command `blockdev --getsize64 /dev/sr0`
-    """
-    while True:
-        output = subprocess.getoutput(("blockdev --getsize64 /dev/sr0"))
-        if "medium" in output:
-            print("No CD found in /dev/sr0. Enter to try again.")
-            _ = input()
-            continue
-        break
-
-    args = (
-        "sudo",
-        "cdrecord",
-        "-v",
-        "dev=/dev/sr0",
-        "-dao",
-        "-text",
-        "-pad",
-        "speed=16",
-        f"cuefile={cue_path}",
-    )
-    _ = sp_run(args)
-
-
 def get_song_source() -> list[Song]:
     """
     asks the user whether or not they want to download, or get from a local directory / .m3u
@@ -231,7 +204,10 @@ def main() -> None:
     if not answer or answer != "n":
         songs: list[Song] = get_song_source()
         cue_path: Path = construct_cue_file_2(songs)
-        burn_cd(cue_path)
+
+        cd_burner: CDBurner = CDBurner(device="/dev/sr0")
+        cd_burner.burn_cue(cue_path, simulate=True)
+
         return
     else:
         # just download
