@@ -6,7 +6,7 @@ from subprocess import run as sp_run
 
 from cd_burning import CDBurner
 from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
-from settings_manager import Settings, get_global_settings
+from settings_manager import Settings, edit_settings, get_global_settings
 from song_info import Song
 import downloading
 import utils
@@ -113,6 +113,8 @@ def get_song_source() -> list[Song]:
 def main() -> None:
 
     utils.check_requirements()
+    if not (Path.cwd() / "settings.json").exists():
+        edit_settings()
 
     answer = input("Are you burning a CD? [Y]/n:\n> ")
     if not answer or answer != "n":

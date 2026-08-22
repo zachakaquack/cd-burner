@@ -1,6 +1,8 @@
 from dataclasses import asdict, dataclass
 import json
+from os.path import expandvars
 from pathlib import Path
+import re
 
 
 @dataclass
@@ -95,10 +97,8 @@ def _load_settings() -> Settings:
     # the easiest thing is just doing it in the CWD, instead of worrying about where it should go
     settings_path: Path = Path.cwd() / "settings.json"
     if not settings_path.exists():
-        with open(f"{settings_path}", "w") as f:
-            settings = Settings.defaults()
-            json.dump(settings.defaults().dict(), f, indent=9)
-            return settings
+        settings = Settings.defaults()
+        return settings
 
     # don't you just love working with JSON?
     with open(f"{settings_path}", "r") as f:
@@ -133,6 +133,45 @@ def get_global_settings() -> Settings:
     if "_SETTINGS" not in globals():
         _SETTINGS = _load_settings()
     return _SETTINGS
+
+
+def edit_settings() -> None:
+    """
+    edit the settings interactively
+    """
+    settings = get_global_settings()
+    members: list[str] = [
+        attr
+        for attr in dir(settings)
+        if not callable(getattr(settings, attr))  # pyright: ignore[reportAny]
+        and not attr.startswith("__")
+    ]
+
+    def print_settings(members: list[str]) -> None:
+        for member in members:
+            print(f"'{member}': {getattr(settings, member)}")
+
+    while True:
+        print_settings(members)
+        try:
+            typing = input("Enter setting to edit (hit CTRL+D to finish):\n> ")
+        except EOFError:
+            settings.write_to_disk()
+            return
+        if typing not in members:
+            print(f"Invalid choice: '{typing}'\n")
+            continue
+
+        # editing
+        print("\nReplaces '~', $HOME, and other env vars.")
+        answer = input(f"Editing {typing}. Enter new value:\n> ")
+        answer_path: Path = resolve_path(Path(answer))
+        if not answer_path.exists():
+            print(f"{answer_path} does not exist! Try again.")
+
+        setattr(settings, typing, answer_path)
+
+
 def resolve_path(path: Path):
     """
     will substitute $HOME, env vars, and '~'.
