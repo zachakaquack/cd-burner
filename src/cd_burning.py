@@ -1,10 +1,7 @@
 from pathlib import Path
 import shutil
 from subprocess import run as sp_run, CalledProcessError
-
-CDRDAO: str = "cdrdao"
-CDRECORD: str = "cdrecord"
-WODIM: str = "wodim"
+import consts
 
 
 class CDBurner:
@@ -20,7 +17,7 @@ class CDBurner:
             raise ValueError(f"CUE File path not found: {cue_path}")
 
         args: list[str] = []
-        if Path(self._program).name == CDRDAO:
+        if Path(self._program).name == consts.CDRDAO:
             args = self._build_cdrdao_args(cue_path, simulate)
         else:  # elif CDRECORD or WODIM
             args = self._build_cdrecord_args(cue_path, simulate)
