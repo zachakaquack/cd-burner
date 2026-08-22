@@ -42,14 +42,12 @@ class Settings:
         ]
         for member in members:
             if member.endswith("_directory"):
-                p: Path = Path(getattr(self, f"{member}"))
-                if p and p.exists() and p.is_dir():
-                    p.mkdir(exist_ok=True)
-
                 # sometimes, for some reason, the path is loaded as a string
                 # so when you do self.path / "other_directory", it shits the bed
                 # because of str / str division
+                p: Path = Path(getattr(self, f"{member}"))  # pyright: ignore[reportAny]
                 setattr(self, f"{member}", p)
+        self.temporary_downloading_directory.mkdir(exist_ok=True)
 
     def dict(self) -> dict[str, str]:
         """
