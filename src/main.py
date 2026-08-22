@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 import time
 from os import walk
 from pathlib import Path
@@ -11,6 +10,7 @@ from settings_manager import Settings, get_global_settings
 from song_info import Song
 import invalid_cd_fixer
 import downloading
+import utils
 
 SETTINGS: Settings = get_global_settings()
 MUSIC_DIRECTORY: Path = Path("/mnt/storage/Music/all")
@@ -200,6 +200,9 @@ def get_song_source() -> list[Song]:
 
 
 def main() -> None:
+
+    utils.check_requirements()
+
     answer = input("Are you burning a CD? [Y]/n:\n> ")
     if not answer or answer != "n":
         songs: list[Song] = get_song_source()
