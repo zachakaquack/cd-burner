@@ -8,7 +8,6 @@ from cd_burning import CDBurner
 from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
 from settings_manager import Settings, get_global_settings
 from song_info import Song
-import invalid_cd_fixer
 import downloading
 import utils
 
@@ -92,94 +91,6 @@ def get_songs_from_directory() -> list[Song]:
     return sorted_songs
 
 
-def cue_file_error_checks(songs: list[Song]) -> list[Song]:
-    """
-    does all the error checks relating to CUE files:
-    1. ensure length of songs list is not 0
-    2. ensure total length (time-wise) of songs is <80 minutes
-    3. ensure total size of songs is <70 mb
-    if an error is found, goes to `invalid_cd_fixer.fix()` and fixes the cue files
-    with user interaction
-    """
-    # length check
-    if len(songs) < 1:
-        raise ValueError(
-            "Error writing CUE file: length of song list is less than 1!!!!"
-        )
-
-    # check for <80min, and <700mb
-    total_time: float = 0
-    EIGHTY_MIN = 60 * 80
-
-    total_bytes: int = 0
-    SEVEN_HUNDRED_MEGABYTES = 700_000_000
-
-    song_paths: list[Path] = []
-    for song in songs:
-        total_time += song.tags.length_seconds
-        total_bytes += song.tags.file_size_bytes
-        song_paths.append(song.path)
-
-    if total_time > EIGHTY_MIN:
-        return invalid_cd_fixer.fix(
-            songs, invalid_cd_fixer.InvalidCDReason.Over80Minutes
-        )
-
-    if total_bytes > SEVEN_HUNDRED_MEGABYTES:
-        return invalid_cd_fixer.fix(
-            songs, invalid_cd_fixer.InvalidCDReason.Over700Megabytes
-        )
-    return songs
-
-
-def construct_cue_file_2(songs: list[Song]) -> Path:
-    """
-    the secondcoming of the CUE construction function.
-    returns a path to the CUE file that is used to burn the cd
-    matches this format:
-
-    TITLE "{album title}"
-    PERFORMER "{album artist}"
-    {
-    FILE "{file_path.wav}" WAVE
-    REM FILE-DECODED-SIZE {%M:%S}
-      TRACK 01 AUDIO
-        TITLE "{track title}"
-        PERFORMER "{track artist}"
-        INDEX 01 00:00:00
-    }...
-    where the ... indicates multiple tracks
-    """
-
-    # if no error occurs, it just returns same songs
-    songs = cue_file_error_checks(songs)
-
-    line_buffer: list[str] = []
-    INDENT_1: str = "  "
-    INDENT_2: str = "    "
-
-    line_buffer.append(f'TITLE "{', '.join(songs[0].tags.album)}"')
-    line_buffer.append(f'PERFORMER "mai"')
-
-    for i, song in enumerate(songs):
-        if song.path.suffix != ".wav":
-            raise ValueError(f"SONG PATH IS NOT WAV!!!!")
-
-        line_buffer.append(f'FILE "{song.path}" WAVE')
-        line_buffer.append(
-            f"REM FILE-DECODED-SIZE {time.strftime("%M:%S", time.gmtime(song.tags.length_seconds))}"
-        )
-        line_buffer.append(f"{INDENT_1}TRACK {(i + 1):02} AUDIO")
-        line_buffer.append(f'{INDENT_2}TITLE "{', '.join(song.tags.title)}"')
-        line_buffer.append(f'{INDENT_2}PERFORMER "{', '.join(song.tags.artist)}"')
-        line_buffer.append(f"{INDENT_2}INDEX 01 00:00:00")
-
-    CUE_PATH = SETTINGS.temporary_downloading_directory / "album.cue"
-    with open(CUE_PATH, "w", encoding="utf-8") as f:
-        _ = f.write("\n".join(line_buffer))
-    return CUE_PATH
-
-
 def get_song_source() -> list[Song]:
     """
     asks the user whether or not they want to download, or get from a local directory / .m3u
@@ -206,7 +117,7 @@ def main() -> None:
     answer = input("Are you burning a CD? [Y]/n:\n> ")
     if not answer or answer != "n":
         songs: list[Song] = get_song_source()
-        cue_path: Path = construct_cue_file_2(songs)
+        cue_path: Path = utils.construct_cue_file_2(songs)
 
         cd_burner: CDBurner = CDBurner(device="/dev/sr0")
         cd_burner.burn_cue(cue_path, simulate=True)
