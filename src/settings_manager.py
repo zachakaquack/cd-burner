@@ -49,6 +49,11 @@ class Settings:
                 setattr(self, f"{member}", p)
         self.temporary_downloading_directory.mkdir(exist_ok=True)
 
+    def write_to_disk(self) -> None:
+        settings_path: Path = Path.cwd() / "settings.json"
+        with open(f"{settings_path}", "w") as f:
+            json.dump(self.dict(), f, indent=9)
+
     def dict(self) -> dict[str, str]:
         """
         convert into dictionary of str: str pairs.
