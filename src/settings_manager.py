@@ -133,3 +133,11 @@ def get_global_settings() -> Settings:
     if "_SETTINGS" not in globals():
         _SETTINGS = _load_settings()
     return _SETTINGS
+def resolve_path(path: Path):
+    """
+    will substitute $HOME, env vars, and '~'.
+    non existant env vars will expand into an empty string
+    """
+    if "$" in str(path):
+        path = Path(re.sub(r"(?<!\\)\$[A-Za-z_][A-Za-z0-9_]*", "", expandvars(path)))
+    return path.expanduser()
