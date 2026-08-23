@@ -93,14 +93,15 @@ def handle_apple_link(link: str) -> tuple[list[Song], Path]:
     for dir, _, files in walk(f"{ORPHEUS_DOWNLOADS_DIR / song_dir}"):
         for file in files:
 
-            if file.endswith(LYRIC_FILE_EXTENSION) or file == ORPHEUS_ALBUM_ID:
+            if (
+                file.endswith(LYRIC_FILE_EXTENSION)
+                or file == ORPHEUS_ALBUM_ID
+                or file.endswith(".txt")
+            ):
                 continue
 
             full_path = Path(f"{dir}/{file}")
             songs.append(Song(full_path))
-
-    for song in songs:
-        song.install_into_music_dir(remove_old=True)
 
     # delete the selected directory in orpheus after installing to not clutter & waste space
     dir_to_delete: Path = Path(f"{ORPHEUS_DOWNLOADS_DIR / song_dir}")
