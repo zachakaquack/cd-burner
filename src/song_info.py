@@ -1,4 +1,3 @@
-from os import remove as os_remove
 from pathlib import Path
 import shutil
 from typing import override
@@ -110,36 +109,30 @@ class Tags:
         """
         path: Path = song.path
         file: mutagen.FileType | None = mutagen.File(f"{path}", easy=True)
+
         if not file:
             raise ValueError(f"Could not identify filetype for song: {path}")
 
         title: list[str] = file.get("title")
         artist: list[str] = file.get("artist")
         album: list[str] = file.get("album")
-        track_tag: str = file.get("track") or file.get("tracknum")
+
         file_size_bytes = getsize(f"{path}")
         length_seconds: float = file.info.length
 
-        # so stupid but at this point i don't care
+        track_tag = file.get("tracknumber")
         if not track_tag:
-            file: mutagen.FileType | None = mutagen.File(f"{path}")
-            track_tag = str(file.get("trkn")[0][0])
-
-        if len(track_tag) < 1:
             raise ValueError(f"No track num found for file: {path}")
 
+        if isinstance(track_tag, list):
+            raw_track = track_tag[0]
+        else:
+            raw_track = track_tag
+
         try:
-            # this means that the first "easy" tag succeeded
-            if isinstance(track_tag, list):
-                track_tag = track_tag[0]
-
-            if "/" in track_tag:
-                track_num = track_tag[: track_tag.find("/") + 1]
-            else:
-                track_num = int(track_tag)
-
-        except ValueError:
-            raise ValueError(f"Track number is not a number!: {track_tag}")
+            track_num = int(str(raw_track).split("/")[0])
+        except ValueError, TypeError:
+            raise ValueError(f"Track number is not a number!: {raw_track}")
 
         # ignore reportArgumentType because it will always default to ["Unknown"] otherwise
         return cls(
