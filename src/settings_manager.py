@@ -98,6 +98,8 @@ def _load_settings() -> Settings:
     settings_path: Path = Path.cwd() / "settings.json"
     if not settings_path.exists():
         settings = Settings.defaults()
+        with open(f"{settings_path}", "w") as f:
+            json.dump(settings.dict(), f, indent=9)
         return settings
 
     # don't you just love working with JSON?
