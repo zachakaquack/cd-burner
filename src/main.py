@@ -1,6 +1,5 @@
 import shutil
-import time
-from os import remove, walk
+from os import walk
 from pathlib import Path
 from subprocess import run as sp_run
 
@@ -85,25 +84,6 @@ def get_songs_from_directory(path: Path) -> list[Song]:
 
     sorted_songs = sorted(songs, key=lambda song: song.tags.track_num)
     return sorted_songs
-
-
-def get_song_source() -> list[Song]:
-    """
-    asks the user whether or not they want to download, or get from a local directory / .m3u
-    encodes the songs to .wav
-    returns the list of song objects
-    """
-    answer = input("Are you downloading anything first? [Y]/n:\n> ")
-
-    songs: list[Song] = []
-    if not answer or answer != "n":
-        songs, _ = downloading.start_downloads()
-
-    else:
-        songs = get_songs_from_directory()
-
-    songs = encode_to_wav(songs)
-    return songs
 
 
 def main() -> None:
