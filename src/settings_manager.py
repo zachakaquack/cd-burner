@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 
 
-@dataclass
+@dataclass(frozen=True)
 class Settings:
 
     temporary_downloading_directory: Path
@@ -133,50 +133,3 @@ def get_global_settings() -> Settings:
     if "_SETTINGS" not in globals():
         _SETTINGS = _load_settings()
     return _SETTINGS
-
-
-def edit_settings() -> None:
-    """
-    edit the settings interactively
-    """
-    settings = get_global_settings()
-    members: list[str] = [
-        attr
-        for attr in dir(settings)
-        if not callable(getattr(settings, attr))  # pyright: ignore[reportAny]
-        and not attr.startswith("__")
-    ]
-
-    def print_settings(members: list[str]) -> None:
-        for member in members:
-            print(f"'{member}': {getattr(settings, member)}")
-
-    while True:
-        print_settings(members)
-        try:
-            typing = input("Enter setting to edit (hit CTRL+D to finish):\n> ")
-        except EOFError:
-            settings.write_to_disk()
-            return
-        if typing not in members:
-            print(f"Invalid choice: '{typing}'\n")
-            continue
-
-        # editing
-        print("\nReplaces '~', $HOME, and other env vars.")
-        answer = input(f"Editing {typing}. Enter new value:\n> ")
-        answer_path: Path = resolve_path(Path(answer))
-        if not answer_path.exists():
-            print(f"{answer_path} does not exist! Try again.")
-
-        setattr(settings, typing, answer_path)
-
-
-def resolve_path(path: Path):
-    """
-    will substitute $HOME, env vars, and '~'.
-    non existant env vars will expand into an empty string
-    """
-    if "$" in str(path):
-        path = Path(re.sub(r"(?<!\\)\$[A-Za-z_][A-Za-z0-9_]*", "", expandvars(path)))
-    return path.expanduser()
