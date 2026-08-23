@@ -36,19 +36,6 @@ class Settings:
     """
 
     def __post_init__(self):
-        members = [
-            attr
-            for attr in dir(self)
-            if not callable(getattr(self, attr))  # pyright: ignore[reportAny]
-            and not attr.startswith("__")
-        ]
-        for member in members:
-            if member.endswith("_directory"):
-                # sometimes, for some reason, the path is loaded as a string
-                # so when you do self.path / "other_directory", it shits the bed
-                # because of str / str division
-                p: Path = Path(getattr(self, f"{member}"))  # pyright: ignore[reportAny]
-                setattr(self, f"{member}", p)
         self.temporary_downloading_directory.mkdir(exist_ok=True)
 
     def write_to_disk(self) -> None:
@@ -123,10 +110,13 @@ def _load_settings() -> Settings:
                 key = getattr(  # pyright: ignore[reportAny]
                     default_settings, f"{member}"
                 )
-                loaded_dict[member] = str(key)  # pyright: ignore[reportAny]
+                loaded_dict[member] = Path(key)  # pyright: ignore[reportAny]
 
     with open(f"{settings_path}", "w") as f:
         json.dump(loaded_dict, f, indent=9)
+
+    for k, v in loaded_dict.items():
+        loaded_dict[k] = Path(v)
     return Settings.from_dict(loaded_dict)  # pyright: ignore[reportAny]
 
 
