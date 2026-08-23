@@ -106,7 +106,10 @@ def parse_args() -> ProgramArgs:
         help="Source of the music. Can be one of: Youtube link, a link compatible with OrpheusDL, a path to .m3u playlist, a path to directory containing music.",
     )
     _ = parser.add_argument(
-        "-d", "--device", default="/dev/sr0", help="Device to burn cd to."
+        "-d",
+        "--device",
+        default="/dev/sr0",
+        help="Device to burn cd to. Default: /dev/sr0",
     )
 
     _ = parser.add_argument(
