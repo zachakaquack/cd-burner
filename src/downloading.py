@@ -13,7 +13,7 @@ import youtube_downloader
 SETTINGS: Settings = get_global_settings()
 
 
-def start_downloads() -> tuple[list[Song], Path | None]:
+def start_downloads(link: str) -> tuple[list[Song], Path | None]:
     """
     starts the downloads and handles whether user is downloading from apple music
     or downloading a [mai](https://www.youtube.com/@mai_dq) playlist.
@@ -25,19 +25,15 @@ def start_downloads() -> tuple[list[Song], Path | None]:
     # example apple: https://music.apple.com/us/album/hornet-disaster/1786672343
     # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
 
-    while True:
-        link = input("Enter Apple Album/Playlist ID or mai Playlist link:\n> ")
+    apple_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
+    if apple_match:
+        return handle_apple_link(link)
 
-        apple_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
-        if apple_match:
-            return handle_apple_link(link)
+    mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
+    if mai_match:
+        return handle_youtube_link(link), None
 
-        mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
-        if mai_match:
-            return handle_youtube_link(link), None
-
-        print("Link not recognized! Try again.")
-        continue
+    raise ValueError(f"Unmatched link: {link}. Link is not valid!")
 
 
 def handle_youtube_link(link: str) -> list[Song]:

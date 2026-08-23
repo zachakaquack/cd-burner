@@ -10,11 +10,23 @@ from utils import is_valid_download_link
 class ProgramArgs:
     source: str | Path
     device: Path
+    is_simulating: bool
     is_burning_cd: bool
 
     @classmethod
-    def load(cls, source: str | Path, device: Path, is_burning_cd: bool) -> ProgramArgs:
-        return cls(source=source, device=device, is_burning_cd=is_burning_cd)
+    def load(
+        cls,
+        source: str | Path,
+        device: Path,
+        is_simulating: bool,
+        is_burning_cd: bool,
+    ) -> ProgramArgs:
+        return cls(
+            source=source,
+            device=device,
+            is_simulating=is_simulating,
+            is_burning_cd=is_burning_cd,
+        )
 
     @override
     def __str__(self) -> str:
@@ -58,6 +70,15 @@ class ProgramArgs:
         return self._device
 
     @property
+    def is_simulating(self) -> bool:
+        return self._is_simulating
+
+    @is_simulating.setter
+    def is_simulating(self, new_is_simulating: bool) -> bool:
+        self._is_simulating = new_is_simulating
+        return self._is_simulating
+
+    @property
     def is_burning_cd(self) -> bool:
         return self._is_burning_cd
 
@@ -89,6 +110,12 @@ def parse_args() -> ProgramArgs:
     )
 
     _ = parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Like burning a CD but the laser stays cold and never writes.",
+    )
+
+    _ = parser.add_argument(
         "--no-burn",
         action="store_true",
         help="Do not burn the CD - Only download. Does nothing if provided with a local path.",
@@ -96,5 +123,8 @@ def parse_args() -> ProgramArgs:
 
     args = parser.parse_args()
     return ProgramArgs.load(
-        args.source, args.device, not args.no_burn  # pyright: ignore[reportAny]
+        source=args.source,
+        device=args.device,
+        is_simulating=args.simulate,
+        is_burning_cd=not args.no_burn,
     )
