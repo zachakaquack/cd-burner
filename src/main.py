@@ -1,6 +1,6 @@
 import shutil
 import time
-from os import walk
+from os import remove, walk
 from pathlib import Path
 from subprocess import run as sp_run
 
@@ -10,12 +10,13 @@ from settings_manager import Settings, edit_settings, get_global_settings
 from song_info import Song
 import downloading
 import utils
+from arg_parsing import ProgramArgs, parse_args
 
 SETTINGS: Settings = get_global_settings()
 MUSIC_DIRECTORY: Path = Path("/mnt/storage/Music/all")
 
 
-def encode_to_flac(songs: list[Song]) -> list[Song]:
+def encode_to_wav(songs: list[Song]) -> list[Song]:
     """
     encodes all the songs to the temporary download location,
     as .wav files
@@ -47,18 +48,13 @@ def encode_to_flac(songs: list[Song]) -> list[Song]:
     return songs
 
 
-def get_songs_from_directory() -> list[Song]:
+def get_songs_from_directory(path: Path) -> list[Song]:
     """
     gets a song from a directory; either a .m3u file, or a directory itself.
     if user inputs a .m3u file, parse the lines and contruct a list of song objects.
     if user inputs a directory, find all music files within the specified
     directory and construct the list of song objects.
     """
-    answer: str = input("Enter path of album or path of .m3u playlist:\n> ")
-    path: Path = Path(answer)
-    if not path.exists():
-        print(f"Path {path} is not a valid path. Try again!")
-        return get_songs_from_directory()
 
     songs: list[Song] = []
     if path.suffix == ".m3u":
@@ -106,7 +102,7 @@ def get_song_source() -> list[Song]:
     else:
         songs = get_songs_from_directory()
 
-    songs = encode_to_flac(songs)
+    songs = encode_to_wav(songs)
     return songs
 
 
@@ -116,20 +112,29 @@ def main() -> None:
     if not (Path.cwd() / "settings.json").exists():
         edit_settings()
 
-    answer = input("Are you burning a CD? [Y]/n:\n> ")
-    if not answer or answer != "n":
-        songs: list[Song] = get_song_source()
-        cue_path: Path = utils.construct_cue_file_2(songs)
+    args: ProgramArgs = parse_args()
+    songs: list[Song] = []
+    cue_path: Path = Path()
 
-        cd_burner: CDBurner = CDBurner(device="/dev/sr0")
-        cd_burner.burn_cue(cue_path, simulate=True)
+    if isinstance(args.source, Path):
+        songs = get_songs_from_directory(args.source)
 
-        return
     else:
-        # just download
-        songs, dir_to_delete = downloading.start_downloads()
-        if dir_to_delete:
-            shutil.rmtree(dir_to_delete)
+        songs, potential_remove = downloading.start_downloads(args.source)
+
+        for song in songs:
+            song.install_into_music_dir(remove_old=True)
+
+        # potential_remove is the (potential) path to remove after downloading, so it doesn't bloat
+        # the downloading directory from orpheus
+        if potential_remove:
+            shutil.rmtree(potential_remove)
+
+    if args.is_burning_cd:
+        songs = encode_to_wav(songs)
+        cue_path = utils.construct_cue_file_2(songs)
+        cd_burner: CDBurner = CDBurner(device=f"{args.device}")
+        cd_burner.burn_cue(cue_path, args.is_simulating)
 
 
 if __name__ == "__main__":
