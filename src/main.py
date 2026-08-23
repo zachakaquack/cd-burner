@@ -5,7 +5,7 @@ from subprocess import run as sp_run
 
 from cd_burning import CDBurner
 from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
-from settings_manager import Settings, edit_settings, get_global_settings
+from settings_manager import Settings, get_global_settings
 from song_info import Song
 import downloading
 import utils
@@ -89,8 +89,6 @@ def get_songs_from_directory(path: Path) -> list[Song]:
 def main() -> None:
 
     utils.check_requirements()
-    if not (Path.cwd() / "settings.json").exists():
-        edit_settings()
 
     args: ProgramArgs = parse_args()
     songs: list[Song] = []
