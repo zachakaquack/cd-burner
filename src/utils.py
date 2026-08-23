@@ -2,12 +2,20 @@ from pathlib import Path
 import shutil
 import consts
 import time
+import re
 
 import invalid_cd_fixer
 from settings_manager import Settings, get_global_settings
 from song_info import Song
 
 SETTINGS: Settings = get_global_settings()
+
+
+def is_valid_download_link(link: str) -> bool:
+    return (
+        re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link) is not None
+        or re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link) is not None
+    )
 
 
 def check_requirements():
