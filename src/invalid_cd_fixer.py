@@ -41,7 +41,7 @@ def handle_too_long(songs: list[Song]) -> list[Song]:
     to reach the <80 min mark.
     returns a new list of songs that is under 80 minutes long
     """
-    edited_songs: list[Song] = songs
+    edited_songs: list[Song] = list(songs)
     while True:
         total_seconds: float = 0
         last_valid_song_found: bool = False
@@ -90,7 +90,7 @@ def handle_too_big(songs: list[Song]) -> list[Song]:
     to reach the <700 mb mark.
     returns a new list of songs that is under 700 mb in size
     """
-    edited_songs: list[Song] = songs
+    edited_songs: list[Song] = list(songs)
     while True:
         total_megabytes: float = 0
         last_valid_song_found: bool = False
