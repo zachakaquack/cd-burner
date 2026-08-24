@@ -17,19 +17,20 @@ SETTINGS: Settings = get_global_settings()
 
 def start_downloads(link: str) -> tuple[list[Song], Path | None]:
     """
-    starts the downloads and handles whether user is downloading from apple music
-    or downloading a [mai](https://www.youtube.com/@mai_dq) playlist.
+    starts the downloads and handles whether user is downloading from an orpheus compatible link
+    or downloading a youtube (mainly [mai](https://www.youtube.com/@mai_dq)) playlist.
     returns a tuple of: (
     a list of Song objects
     an optional Path of the directory the music was downloaded in, to remove when finished.
     )
     """
-    # example apple: https://music.apple.com/us/album/hornet-disaster/1786672343
+    # example orpheus: https://music.apple.com/us/album/hornet-disaster/1786672343
     # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
 
     apple_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
-    if apple_match:
-        return handle_apple_link(link)
+    spotify_match = re.match(r"(?:https?:\/\/open\.spotify\.com)\/.+\/(?:.+)", link)
+    if apple_match or spotify_match:
+        return handle_orpheus_link(link)
 
     mai_match = re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link)
     if mai_match:
@@ -47,9 +48,9 @@ def handle_youtube_link(link: str) -> list[Song]:
     return youtube_downloader.start_download(link)
 
 
-def handle_apple_link(link: str) -> tuple[list[Song], Path]:
+def handle_orpheus_link(link: str) -> tuple[list[Song], Path]:
     """
-    downloads a link from apple music.
+    downloads a link from something compatible with orpheus
     example: https://music.apple.com/us/album/hornet-disaster/1786672343
     returns a tuple of: (
     a list of Song objects

@@ -14,6 +14,7 @@ SETTINGS: Settings = get_global_settings()
 def is_valid_download_link(link: str) -> bool:
     return (
         re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link) is not None
+        or re.match(r"(?:https?:\/\/open\.spotify\.com)\/.+\/(?:.+)", link) is not None
         or re.match(r"(?:https?:\/\/youtu\.be)\/(?:.+$)", link) is not None
     )
 
