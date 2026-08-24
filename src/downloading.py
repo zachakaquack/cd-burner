@@ -47,46 +47,6 @@ def handle_youtube_link(link: str) -> list[Song]:
     return youtube_downloader.start_download(link)
 
 
-def change_orpheus_download_path() -> tuple[Path, Path]:
-    """
-    changes the download path within orpheus' settings to an already
-    known UUID, so we can avoid asking the user what they just downloaded.
-    returns a path to the new downloads directory, and the UUID.
-    """
-    uuid_str: str = str(uuid4())
-    uuid_path: Path = Path(str(uuid_str))
-    new_path: Path = SETTINGS.temporary_downloading_directory / uuid_path
-    orpheus_settings_path: Path = (
-        SETTINGS.orpheusDL_source_directory / "config" / "settings.json"
-    )
-    with open(f"{orpheus_settings_path}", "r") as f:
-        loaded_dict = json.load(f)  # pyright: ignore[reportAny]
-
-    old_download_path: Path = Path(
-        loaded_dict["global"]["general"]["download_path"]  # pyright: ignore[reportAny]
-    )
-    loaded_dict["global"]["general"]["download_path"] = f"{new_path}"
-
-    with open(f"{orpheus_settings_path}", "w") as f:
-        json.dump(loaded_dict, f)
-
-    return (new_path, old_download_path)
-
-
-def reset_orpheus_download_path(old_path: Path) -> None:
-    orpheus_settings_path: Path = (
-        SETTINGS.orpheusDL_source_directory / "config" / "settings.json"
-    )
-
-    with open(f"{orpheus_settings_path}", "r") as f:
-        loaded_dict = json.load(f)  # pyright: ignore[reportAny]
-
-    loaded_dict["global"]["general"]["download_path"] = f"{old_path}"
-
-    with open(f"{orpheus_settings_path}", "w") as f:
-        json.dump(loaded_dict, f)
-
-
 def handle_apple_link(link: str) -> tuple[list[Song], Path]:
     """
     downloads a link from apple music.
@@ -98,17 +58,19 @@ def handle_apple_link(link: str) -> tuple[list[Song], Path]:
     )
     """
 
-    new_download_path, old_download_path = change_orpheus_download_path()
+    new_download_path: Path = SETTINGS.temporary_downloading_directory / Path(
+        str(uuid4())
+    )
+    new_download_path.mkdir()
 
     # FIX: horrid
     _ = system(f"""
     cd {SETTINGS.orpheusDL_source_directory} && \\
        {SETTINGS.orpheusDL_source_directory}/.venv/bin/python \\
        {SETTINGS.orpheusDL_source_directory}/orpheus.py \\
+       --output "{new_download_path}" \\
        {link}
     """)
-
-    reset_orpheus_download_path(old_download_path)
 
     songs: list[Song] = []
     for dir, _, files in walk(f"{new_download_path}"):
