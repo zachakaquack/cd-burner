@@ -2,6 +2,7 @@ import shutil
 from os import walk
 from pathlib import Path
 from subprocess import run as sp_run
+import sys
 
 from cd_burning import CDBurner
 from consts import LYRIC_FILE_EXTENSION, ORPHEUS_ALBUM_ID
@@ -90,7 +91,7 @@ def main() -> None:
 
     utils.check_requirements()
 
-    args: ProgramArgs = parse_args()
+    args: ProgramArgs = parse_args(sys.argv[1:])
     songs: list[Song] = []
     cue_path: Path = Path()
 

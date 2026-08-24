@@ -88,7 +88,7 @@ class ProgramArgs:
         return self._is_burning_cd
 
 
-def parse_args() -> ProgramArgs:
+def parse_args(provided_args: list[str]) -> ProgramArgs:
     """
     parse args :)
     input = link or dirpath or .m3u path
@@ -124,7 +124,7 @@ def parse_args() -> ProgramArgs:
         help="Do not burn the CD - Only download. Does nothing if provided with a local path.",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(args=provided_args)
     return ProgramArgs.load(
         source=args.source,
         device=args.device,
