@@ -41,10 +41,11 @@ class ProgramArgs:
 
         path: Path = Path(new_source)
         if path.exists():
-            if path.is_file() and path.suffix != ".m3u":
-                raise ValueError(
-                    "Inputted path is a file, yet not a .m3u playlist file!"
-                )
+            if path.is_file():
+                if path.suffix not in (".m3u", ".cue"):
+                    raise ValueError(
+                        "Inputted path is a file, yet not a .m3u or .cue file!"
+                    )
 
             self._source = path
 
@@ -103,7 +104,7 @@ def parse_args(provided_args: list[str]) -> ProgramArgs:
     )
     _ = parser.add_argument(
         "source",
-        help="Source of the music. Can be one of: Youtube link, a link compatible with OrpheusDL, a path to .m3u playlist, a path to directory containing music.",
+        help="Source of the music. Can be one of: Youtube link, a link compatible with OrpheusDL, a path to .m3u playlist, a path to directory containing music, or a path to a CUE file.",
     )
     _ = parser.add_argument(
         "-d",

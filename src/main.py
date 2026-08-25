@@ -94,9 +94,14 @@ def main() -> None:
     args: ProgramArgs = parse_args(sys.argv[1:])
     songs: list[Song] = []
     cue_path: Path = Path()
+    given_cue_path_already: bool = False
 
     if isinstance(args.source, Path):
-        songs = get_songs_from_directory(args.source)
+        if args.source.suffix != ".cue":
+            songs = get_songs_from_directory(args.source)
+        else:
+            given_cue_path_already = True
+            cue_path = args.source
 
     else:
         songs, potential_remove = downloading.start_downloads(args.source)
@@ -110,8 +115,9 @@ def main() -> None:
             shutil.rmtree(potential_remove)
 
     if args.is_burning_cd:
-        songs = encode_to_wav(songs)
-        cue_path = utils.construct_cue_file_2(songs)
+        if not given_cue_path_already:
+            songs = encode_to_wav(songs)
+            cue_path = utils.construct_cue_file_2(songs)
         cd_burner: CDBurner = CDBurner(device=f"{args.device}")
         cd_burner.burn_cue(cue_path, args.is_simulating)
 
