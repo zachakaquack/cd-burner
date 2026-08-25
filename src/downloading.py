@@ -27,7 +27,10 @@ def start_downloads(link: str) -> tuple[list[Song], Path | None]:
     # example orpheus: https://music.apple.com/us/album/hornet-disaster/1786672343
     # example mai: https://youtu.be/EkFFRCS-XKo (from right click -> copy link)
 
-    apple_match = re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
+    apple_match = (
+        re.match(r"(?:https?:\/\/music\.apple\.com)\/.*\/(?:\d+)", link)
+        or re.match(r"(?:https?:\/\/music\.apple\.com\/.*\/playlist\/.+\/.*)", link),
+    )
     spotify_match = re.match(r"(?:https?:\/\/open\.spotify\.com)\/.+\/(?:.+)", link)
     if apple_match or spotify_match:
         return handle_orpheus_link(link)
@@ -81,6 +84,7 @@ def handle_orpheus_link(link: str) -> tuple[list[Song], Path]:
                 file.endswith(LYRIC_FILE_EXTENSION)
                 or file == ORPHEUS_ALBUM_ID
                 or file.endswith(".txt")
+                or file.endswith(".m3u")
             ):
                 continue
 
