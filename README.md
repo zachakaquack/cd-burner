@@ -23,8 +23,8 @@ python src/main.py [-h] [-d DEVICE] [--simulate] [--no-burn] source
 python src/main.py https://music.apple.com/us/album/b4-the-world-single/6803743105
 
 # burn a cd, from a local playlist / directory
-python src/main.py --no-burn /path/to/directory/of/files
-python src/main.py --no-burn /path/to/playlist.m3u
+python src/main.py /path/to/directory/of/files
+python src/main.py /path/to/playlist.m3u
 
 # only download and install songs, do not burn
 python src/main.py --no-burn https://music.apple.com/us/album/b4-the-world-single/6803743105
