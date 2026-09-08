@@ -89,12 +89,12 @@ def get_songs_from_directory(path: Path) -> list[Song]:
 
 def main() -> None:
 
-    utils.check_requirements()
-
     args: ProgramArgs = parse_args(sys.argv[1:])
     songs: list[Song] = []
     cue_path: Path = Path()
     given_cue_path_already: bool = False
+
+    utils.check_requirements()
 
     if isinstance(args.source, Path):
         if args.source.suffix != ".cue":
