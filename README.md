@@ -1,17 +1,31 @@
 # cd-burner
 
-still under construction
+## cli program to burn cds.
 
-basically all this does is:
+basically a wrapper around cdrdao and orpheusdl.
+will also "install" songs into a predetermined music directory (MUSIC_DIR/{artist}/{album}/{song[s]}), and embed metadata tags if needed.
 
-1. find the music you want to burn
-   1. DOWNLOADING
-      - apple music (using Orpheus)
-      - youtube (yt_dlp, specifically a playlist from user [mai](https://www.youtube.com/@mai_dq))
-        (after downloading, it will install the music into my music catalogue)
-   2. LOCAL
-      - point to a directory of music files
-      - point to a .m3u playlist file
+only downloads from spotify & apple music because thats all i check for.
+if you want to ignore that, edit the `start_downloads()` function in `src/downloading.py` and the `is_valid_download_link()` check in `src/arg_parsing.py`
 
-2. construct a cue file for the CD
-3. burn the cd
+## requirements:
+
+1.  cdrdao or an equivalant (cdrdao, cdrecord, wodim)
+2.  [OrpheusDL](https://github.com/bascurtiz/OrpheusDL)
+3.  yt-dlp
+
+## usage:
+
+```
+python src/main.py [-h] [-d DEVICE] [--simulate] [--no-burn] source
+
+# burn a cd, downloading from apple music
+python src/main.py https://music.apple.com/us/album/b4-the-world-single/6803743105
+
+# burn a cd, from a local playlist / directory
+python src/main.py --no-burn /path/to/directory/of/files
+python src/main.py --no-burn /path/to/playlist.m3u
+
+# only download and install songs, do not burn
+python src/main.py --no-burn https://music.apple.com/us/album/b4-the-world-single/6803743105
+```
